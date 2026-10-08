@@ -112,10 +112,14 @@ in
     systemd.packages = [ cfg.package.out ];
 
     systemd.services.polkit = {
-      restartTriggers = [ config.system.path ];
       reloadTriggers = [
-        config.environment.etc."polkit-1/rules.d/10-nixos.rules".source
-      ];
+        config.system.path
+      ]
+      ++ map (f: f.source) (
+        lib.filter (f: f.enable && lib.hasPrefix "polkit-1/" f.target) (
+          lib.attrValues config.environment.etc
+        )
+      );
       serviceConfig.ExecStart = [
         # nuke default ExecStart
         ""
